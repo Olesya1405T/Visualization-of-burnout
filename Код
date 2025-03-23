@@ -1,0 +1,81 @@
+let grains = [];
+let tempSlider;
+let currentTemp = 0;
+let isOverheated = false;
+
+function setup() {
+  createCanvas(800, 600);
+  
+  // Инициализация зерен
+  for(let i = 0; i < 100; i++) {
+    grains.push(new Grain(
+      random(width),
+      random(height),
+      random(15, 30)
+    ));
+  }
+  
+  // Создание слайдера для температуры
+  tempSlider = createSlider(0, 700, 300);
+  tempSlider.position(20, height - 40);
+}
+
+function draw() {
+  background(240);
+  
+  currentTemp = tempSlider.value();
+  isOverheated = currentTemp > 500; // Температура гомогенизации
+  
+  // Отображение зерен
+  for(let grain of grains) {
+    grain.update();
+    grain.display();
+  }
+  
+  // Отображение информации
+  drawHUD();
+}
+
+class Grain {
+  constructor(x, y, size) {
+    this.pos = createVector(x, y);
+    this.baseSize = size;
+    this.currentSize = size;
+    this.color = color(200, 200, 255);
+  }
+  
+  update() {
+    // Изменение размера при пережоге
+    if(isOverheated) {
+      this.currentSize = lerp(this.currentSize, this.baseSize * 2, 0.1);
+      this.color = lerpColor(this.color, color(255, 100, 100), 0.1);
+    } else {
+      this.currentSize = lerp(this.currentSize, this.baseSize, 0.1);
+      this.color = lerpColor(this.color, color(200, 200, 255), 0.1);
+    }
+  }
+  
+  display() {
+    noStroke();
+    fill(this.color);
+    ellipse(this.pos.x, this.pos.y, this.currentSize);
+  }
+}
+
+function drawHUD() {
+  // Панель информации
+  fill(255, 200);
+  rect(0, height - 60, width, 60);
+  
+  // Текст с температурой
+  fill(0);
+  textSize(16);
+  text(`Температура: ${currentTemp}°C`, 20, height - 35);
+  
+  // Предупреждение о пережоге
+  if(isOverheated) {
+    fill(255, 0, 0);
+    textSize(20);
+    text("ПЕРЕЖОГ! Разрушение структуры материала!", width/2 - 180, height - 25);
+  }
+}
